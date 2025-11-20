@@ -1,17 +1,14 @@
 {
-  "name": "secure-cookie-api",
+  "name": "cookie-backend",
   "version": "1.0.0",
   "main": "server.js",
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "cors": "latest",
-    "dotenv": "latest",
-    "express": "latest",
-    "express-rate-limit": "latest",
-    "helmet": "latest",
-    "mongoose": "latest"
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "mongoose": "^7.3.0"
   }
 }
